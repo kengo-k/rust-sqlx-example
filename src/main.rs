@@ -1,40 +1,32 @@
-mod foo;
+use dotenv;
+use sqlx::sqlite::SqlitePool;
+use std::env;
 
-mod inner_mod {
-    pub fn hello() {
-        println!("Hello");
-    }
-
-    pub mod inner_inner_mod {
-        pub fn world() {
-            println!("World");
-        }
-    }
-
-    #[derive(Debug)]
-    pub struct Person {
-        pub name: String,
-    }
-
-    impl Person {
-        pub fn new(name: String) -> Self {
-            Self { name }
-        }
-
-        pub fn show(&self) {
-            println!("{:?}", self);
-        }
-    }
+#[derive(Debug)]
+pub struct User {
+    pub id: i64,
+    pub name: String,
+    pub email: String,
 }
 
-use crate::foo::common::MyEnum;
-use inner_mod::inner_inner_mod::world;
-use inner_mod::Person;
+#[tokio::main]
+async fn main() -> Result<(), sqlx::Error> {
+    dotenv::dotenv().expect("Failed to read .env file");
+    let database_url = env::var("DATABASE_URL").expect("DATABASE_URL must be set");
+    let pool = SqlitePool::connect(&database_url).await?;
 
-fn main() {
-    inner_mod::hello();
-    world();
-    let john = Person::new("John".to_string());
-    john.show();
-    foo::bar::util::print_my_enum(&MyEnum::A);
+    let users = get_users(&pool).await?;
+    for user in users {
+        println!("{:?}", user);
+    }
+
+    Ok(())
+}
+
+async fn get_users(pool: &SqlitePool) -> Result<Vec<User>, sqlx::Error> {
+    let users = sqlx::query_as!(User, "SELECT id, name, email FROM users")
+        .fetch_all(pool)
+        .await?;
+
+    Ok(users)
 }

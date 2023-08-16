@@ -1,12 +1,11 @@
 [package]
-name = "rust-simple-template"
+name = "rust-sqlx-example"
 version = "0.1.0"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
-[[bin]]
-name = "main2"
-path = "src/main2.rs"
-
 [dependencies]
+dotenv = "0.15.0"
+sqlx = { version = "0.7.1", features = ["sqlite", "runtime-tokio-native-tls"] }
+tokio = { version = "1.31.0", features = ["full"] }
